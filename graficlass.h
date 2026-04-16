@@ -5,10 +5,7 @@
 #include <stdint.h>
 #include <float.h>
 
-#define NP (1024)
-#define NPX (NP)
-#define NPY (NP)
-#define NPZ (NP)
+#define DEFAULT_NP1D (1024)
 
 #define NKMAX (2001)
 #define NT (11)

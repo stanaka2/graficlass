@@ -22,8 +22,8 @@ void set_fftw_params(struct fftw_param *, struct run_param *);
 
 int main(int argc, char **argv)
 {
-  if(argc != 2) {
-    fprintf(stderr, "Usage :: mpiexec -n <node> %s <grafic param file>\n", argv[0]);
+  if(argc < 2 || argc > 3) {
+    fprintf(stderr, "Usage :: mpiexec -n <node> %s <grafic param file> [np1d]\n", argv[0]);
     exit(EXIT_FAILURE);
   }
 
@@ -44,9 +44,12 @@ int main(int argc, char **argv)
   MPI_Comm_size(MPI_COMM_WORLD, &(this_run.mpi_nproc));
   MPI_Comm_rank(MPI_COMM_WORLD, &(this_run.mpi_rank));
 
-  this_run.nx_tot = NPX;
-  this_run.ny_tot = NPY;
-  this_run.nz_tot = NPZ;
+  uint64_t np1d = DEFAULT_NP1D;
+  if(argc == 3) np1d = strtoull(argv[2], NULL, 10);
+
+  this_run.nx_tot = np1d;
+  this_run.ny_tot = np1d;
+  this_run.nz_tot = np1d;
   this_run.np_tot = this_run.nx_tot * this_run.ny_tot * this_run.nz_tot;
 
   if(this_run.mpi_rank == 0)
