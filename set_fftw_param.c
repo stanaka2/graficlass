@@ -89,7 +89,8 @@ void set_fftw_params(struct fftw_param *this_fft, struct run_param *this_run)
   }
 
   for(int irank = 0; irank < this_run->mpi_nproc; irank++) {
-    ptrdiff_t length_x, start_x, base_length_x;
+    // ptrdiff_t length_x, start_x, base_length_x;
+    ptrdiff_t length_x, start_x;
     base_length_x = get_fft_mpi_local_length_1d(this_run->nx_tot, this_run->mpi_nproc, irank, &length_x, &start_x);
     tot_length += length_x;
 

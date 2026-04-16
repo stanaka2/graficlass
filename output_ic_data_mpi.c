@@ -31,9 +31,9 @@ void update_slab_mesh_padd(float *mesh, float *padd_lo, float *padd_hi, struct r
   ny_loc = this_run->ny_loc;
   nz_loc = this_run->nz_loc;
 
-  uint64_t ny2, nz2;
-  ny2 = this_run->ny_loc / 2;
-  nz2 = this_run->nz_loc / 2;
+  // uint64_t ny2, nz2;
+  // ny2 = this_run->ny_loc / 2;
+  // nz2 = this_run->nz_loc / 2;
 
   uint64_t padd_count;
   float *buff_lo, *buff_hi;

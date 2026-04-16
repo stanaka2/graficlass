@@ -119,12 +119,12 @@ void setup_GK_mpi(double *gk, struct run_param *this_run)
   uint64_t ny = this_run->ny_tot;
   uint64_t nz = this_run->nz_tot;
 
-  uint64_t nx2 = this_run->nx_tot / 2;
-  uint64_t ny2 = this_run->ny_tot / 2;
+  // uint64_t nx2 = this_run->nx_tot / 2;
+  // uint64_t ny2 = this_run->ny_tot / 2;
   uint64_t nz2 = this_run->nz_tot / 2;
 
   uint64_t nx_loc = this_run->nx_loc;
-  uint64_t nx_loc_start = this_run->nx_loc_start;
+  // uint64_t nx_loc_start = this_run->nx_loc_start;
 
   assert(nx == ny);
   assert(ny == nz);
