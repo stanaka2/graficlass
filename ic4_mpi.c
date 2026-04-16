@@ -110,6 +110,38 @@ double normalrand64_skip()
   return a + b;
 }
 
+static inline uint64_t splitmix64_stateless(uint64_t x)
+{
+  x += 0x9E3779B97F4A7C15ULL;
+  x = (x ^ (x >> 30)) * 0xBF58476D1CE4E5B9ULL;
+  x = (x ^ (x >> 27)) * 0x94D049BB133111EBULL;
+  return x ^ (x >> 31);
+}
+
+static inline uint64_t mix_hash_u64(uint64_t state, uint64_t value)
+{
+  return splitmix64_stateless(state ^ splitmix64_stateless(value + 0x9E3779B97F4A7C15ULL));
+}
+
+static inline double hash_uniform_open01(uint64_t seed, uint64_t gx, uint64_t iy, uint64_t iz, uint64_t stream)
+{
+  uint64_t h = 0x6A09E667F3BCC909ULL;
+  h = mix_hash_u64(h, seed);
+  h = mix_hash_u64(h, gx);
+  h = mix_hash_u64(h, iy);
+  h = mix_hash_u64(h, iz);
+  h = mix_hash_u64(h, stream);
+  return ((h >> 11) + 0.5) * (1.0 / 9007199254740992.0);
+}
+
+static inline double normalrand_hash(uint64_t seed, uint64_t gx, uint64_t iy, uint64_t iz)
+{
+  double u1 = hash_uniform_open01(seed, gx, iy, iz, 0);
+  double u2 = hash_uniform_open01(seed, gx, iy, iz, 1);
+  double xr = sqrt(-2.0 * log(u1));
+  return xr * sin(TWO_PI * u2);
+}
+
 #define INDX(ix, iy, iz) ((iz) + (nz + 2) * ((iy) + ny * (ix)))
 #define KINDX(ix, iy, iz) ((iz) + (nz2 + 1) * ((iy) + ny * (ix)))
 
@@ -631,37 +663,10 @@ void ic4_mpi(int pk_type, float *f, struct run_param *this_run)
 
     /* Create and output white noise field. */
     if(this_run->irand == 1) {
-
-      /* for 64-bit */
       unsigned long long key = this_run->iseed;
+#ifdef __GRAFICLASS_LEGACY_WHITE_NOISE__
       unsigned long long length = 4;
-      // unsigned long long init[4] = {0x123ULL, 0x234ULL, 0x345ULL, 0x456ULL + key};
-      // init_by_array64(init, length);
-
-#if 0
-      /*** When MPI/thread parallelized, the random order is indefinite. ***/
-      for(uint64_t ix = 0; ix < nx; ix++) {
-
-        unsigned long long init[4] = {0x123ULL, 0x234ULL, 0x345ULL, 0x456ULL + key + ix};
-        init_by_array64(init, length);
-
-        for(uint64_t iy = 0; iy < ny; iy++) {
-          for(uint64_t iz = 0; iz < nz; iz++) {
-            double xr = normalrand64();
-
-            if(nx_loc_start <= ix && ix < nx_loc_start + nx_loc) {
-              uint64_t ixx = ix - nx_loc_start;
-              FF(ixx, iy, iz) = xr;
-            }
-          }
-        }
-      }
-
-#else
-
-      /*** When thread parallelized, the random order is indefinite. ***/
       for(uint64_t ix = 0; ix < nx_loc; ix++) {
-
         uint64_t gix = ix + nx_loc_start;
         unsigned long long init[4] = {0x123ULL, 0x234ULL, 0x345ULL, 0x456ULL + key + gix};
         init_by_array64(init, length);
@@ -670,10 +675,19 @@ void ic4_mpi(int pk_type, float *f, struct run_param *this_run)
           for(uint64_t iz = 0; iz < nz; iz++) {
             double xr = normalrand64();
             FF(ix, iy, iz) = xr;
+            }
+          }
+        }
+#else
+      for(uint64_t ix = 0; ix < nx_loc; ix++) {
+        uint64_t gix = ix + nx_loc_start;
+
+        for(uint64_t iy = 0; iy < ny; iy++) {
+          for(uint64_t iz = 0; iz < nz; iz++) {
+            FF(ix, iy, iz) = normalrand_hash(key, gix, iy, iz);
           }
         }
       }
-
 #endif
 
       make_directory(noise_dir);

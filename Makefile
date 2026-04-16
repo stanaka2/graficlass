@@ -5,6 +5,7 @@ OMP_FLAG=-fopenmp
 CFLAGS = -O3 -fopenmp -std=c11 -fPIE
 
 CFLAGS += -D__OUTPUT_CDM_FOR_CB__
+# CFLAGS += -D__GRAFICLASS_LEGACY_WHITE_NOISE__
 
 CFLAGS += -D__2LPT__
 #CFLAGS += -D__DEBUG__
